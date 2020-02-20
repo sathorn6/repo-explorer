@@ -1,0 +1,22 @@
+{
+	"name": "repo-explorer",
+	"version": "1.0.0",
+	"private": true,
+	"license": "CC0",
+	"scripts": {
+		"start": "parcel src/index.html",
+		"build": "parcel build src/index.html"
+	},
+	"dependencies": {
+		"@isomorphic-git/lightning-fs": "^3.4.1",
+		"babel-polyfill": "^6.26.0",
+		"isomorphic-git": "^0.77.1",
+		"react": ">=16.0.0",
+		"react-dom": ">=16.0.0"
+	},
+	"devDependencies": {
+		"@types/react": "^16.9.19",
+		"@types/react-dom": "^16.9.5",
+		"typescript": "^3.7.5"
+	}
+}

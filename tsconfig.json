@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"emitDecoratorMetadata": true,
+		"esModuleInterop": true,
+		"experimentalDecorators": true,
+		"jsx": "react",
+		"module": "esnext",
+		"moduleResolution": "node",
+		"sourceMap": true,
+		"strict": true,
+		"target": "es5",
+		"lib": ["esnext", "dom"],
+		"allowSyntheticDefaultImports": true,
+		"noImplicitAny": false
+	},
+	"exclude": ["node_modules", "test", "dist"]
+}
