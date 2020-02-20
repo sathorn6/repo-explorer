@@ -113,7 +113,7 @@ const TreeView = ({
 }) => {
 	const sortedChildren = Array.from(tree.children).sort((a, b) => {
 		if (a.type === b.type) {
-			return b.changes - a.changes;
+			return b.numChanges - a.numChanges;
 		}
 
 		if (a.type === "directory") {
@@ -131,6 +131,7 @@ const TreeView = ({
 					<tr>
 						<th>Name</th>
 						<th># of changes</th>
+						<th># of files</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -146,7 +147,8 @@ const TreeView = ({
 							<td>
 								<NodeView node={entry} onClick={() => onClick(entry)} />
 							</td>
-							<td>{entry.changes}</td>
+							<td>{entry.numChanges}</td>
+							<td>{entry.numFiles}</td>
 						</tr>
 					))}
 				</tbody>

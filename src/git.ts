@@ -8,9 +8,11 @@ const pfs = fs.promises;
 const dir = "/myrepo";
 
 export interface TreeNode {
+	parent?: TreeNode;
 	name: string;
 	type: "file" | "directory";
-	changes: number;
+	numChanges: number;
+	numFiles: number;
 	children: TreeNode[];
 }
 
@@ -30,6 +32,12 @@ export const followPath = (tree: TreeNode, path: string): TreeNode | null => {
 	}
 
 	return current;
+};
+
+const incrementNumFiles = (node: TreeNode | undefined) => {
+	for (let current = node; current; current = current.parent) {
+		current.numFiles++;
+	}
 };
 
 export const analyzeRepo = async (repoUrl: string): Promise<TreeNode> => {
@@ -134,37 +142,48 @@ export const analyzeRepo = async (repoUrl: string): Promise<TreeNode> => {
 	const makeTreeNode = async (
 		path: string,
 		name: string,
-		oid: string
+		oid: string,
+		parent?: TreeNode
 	): Promise<TreeNode> => {
-		const tree = await git.readTree({ dir, oid });
+		const node: TreeNode = {
+			parent,
+			name,
+			type: "directory",
+			numChanges: changes.get(path) || 0,
+			numFiles: 0,
+			children: []
+		};
 
-		const children: TreeNode[] = [];
+		const tree = await git.readTree({ dir, oid });
 
 		for (const entry of tree.tree) {
 			if (entry.type === "blob") {
-				children.push({
+				node.children.push({
+					parent: node,
 					name: entry.path,
 					type: "file",
-					changes: changes.get(path + entry.path) || 0,
+					numChanges: changes.get(path + entry.path) || 0,
+					numFiles: 1,
 					children: []
 				});
+				incrementNumFiles(node);
 				continue;
 			}
 
 			if (entry.type === "tree") {
-				children.push(
-					await makeTreeNode(path + entry.path + "/", entry.path, entry.oid)
+				node.children.push(
+					await makeTreeNode(
+						path + entry.path + "/",
+						entry.path,
+						entry.oid,
+						node
+					)
 				);
 				continue;
 			}
 		}
 
-		return {
-			name,
-			type: "directory",
-			changes: changes.get(path) || 0,
-			children
-		};
+		return node;
 	};
 
 	return await makeTreeNode("/", "", headId);
