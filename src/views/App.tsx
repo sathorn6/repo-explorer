@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { analyzeRepo, TreeNode, followPath } from "../git";
+import { extractRepositoryNameFromUrl } from "../extractRepositoryNameFromUrl";
 
 export const App = () => {
 	return (
@@ -14,7 +15,7 @@ export const Home = () => {
 	const [exploring, setExploring] = useState(false);
 
 	if (exploring) {
-		return <Explore repo={repo} />;
+		return <Explore repoUrl={repo} />;
 	}
 
 	return (
@@ -61,25 +62,36 @@ export const Home = () => {
 	);
 };
 
-const Explore = ({ repo }: { repo: string }) => {
+const Explore = ({ repoUrl }: { repoUrl: string }) => {
 	const [tree, setTree] = useState();
 
 	useEffect(() => {
 		const worker = async () => {
-			setTree(await analyzeRepo(repo));
+			setTree(await analyzeRepo(repoUrl));
 		};
 
 		worker();
-	}, [repo]);
+	}, [repoUrl]);
 
 	if (tree) {
-		return <ResultView root={tree} />;
+		return (
+			<ResultView
+				root={tree}
+				repoName={extractRepositoryNameFromUrl(repoUrl) || "Repository"}
+			/>
+		);
 	}
 
-	return <p className="text-center text-gray-500">Analyzing {repo}...</p>;
+	return <p className="text-center text-gray-500">Analyzing {repoUrl}...</p>;
 };
 
-const ResultView = ({ root }: { root: TreeNode }) => {
+const ResultView = ({
+	repoName,
+	root
+}: {
+	repoName: string;
+	root: TreeNode;
+}) => {
 	const [path, setPath] = useState("");
 	const dirs = path.split("/");
 	dirs.pop();
@@ -89,7 +101,7 @@ const ResultView = ({ root }: { root: TreeNode }) => {
 
 	return (
 		<div>
-			<PathNavigator path={path} setPath={setPath} rootName="root" />
+			<PathNavigator path={path} setPath={setPath} rootName={repoName} />
 			{node && (
 				<TreeView
 					tree={node}
