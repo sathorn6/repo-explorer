@@ -67,6 +67,7 @@ export const analyzeRepo = async (repoUrl: string): Promise<TreeNode> => {
 		const aTree = await git.readTree({ dir, oid: aId });
 		const bTree = await git.readTree({ dir, oid: bId });
 
+		// FIXME: Git submodules show up as type commit
 		if (aTree.tree.some(({ type }) => type !== "tree" && type !== "blob")) {
 			throw new Error("unknown type");
 		}
