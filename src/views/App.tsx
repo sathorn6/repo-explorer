@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { analyzeRepo, TreeNode, followPath } from "../git";
-import { extractRepositoryNameFromUrl } from "../extractRepositoryNameFromUrl";
+import { extractRepositoryNameFromUrl, buildFileUrl } from "../url";
 
 export const App = () => {
 	return (
@@ -74,24 +74,13 @@ const Explore = ({ repoUrl }: { repoUrl: string }) => {
 	}, [repoUrl]);
 
 	if (tree) {
-		return (
-			<ResultView
-				root={tree}
-				repoName={extractRepositoryNameFromUrl(repoUrl) || "Repository"}
-			/>
-		);
+		return <ResultView root={tree} repoUrl={repoUrl} />;
 	}
 
 	return <p className="text-center text-gray-500">Analyzing {repoUrl}...</p>;
 };
 
-const ResultView = ({
-	repoName,
-	root
-}: {
-	repoName: string;
-	root: TreeNode;
-}) => {
+const ResultView = ({ repoUrl, root }: { repoUrl: string; root: TreeNode }) => {
 	const [path, setPath] = useState("");
 	const dirs = path.split("/");
 	dirs.pop();
@@ -101,15 +90,17 @@ const ResultView = ({
 
 	return (
 		<div>
-			<PathNavigator path={path} setPath={setPath} rootName={repoName} />
+			<PathNavigator
+				path={path}
+				setPath={setPath}
+				rootName={extractRepositoryNameFromUrl(repoUrl) || "Repository"}
+			/>
 			{node && (
 				<TreeView
 					tree={node}
-					onClick={entry => {
-						if (entry.type === "directory") {
-							setPath((path ? path + "/" : "") + entry.name);
-						}
-					}}
+					repoUrl={repoUrl}
+					path={path}
+					setPath={setPath}
 					onGoUp={path ? () => setPath(parent) : undefined}
 				/>
 			)}
@@ -186,11 +177,15 @@ const PathDir = ({
 
 const TreeView = ({
 	tree,
-	onClick,
+	repoUrl,
+	path,
+	setPath,
 	onGoUp
 }: {
 	tree: TreeNode;
-	onClick: (entry: TreeNode) => void;
+	repoUrl: string;
+	path: string;
+	setPath: (path: string) => void;
 	onGoUp?: () => void;
 }) => {
 	const sortedChildren = Array.from(tree.children).sort((a, b) => {
@@ -230,7 +225,12 @@ const TreeView = ({
 				{sortedChildren.map((entry, index) => (
 					<tr key={index} className="border">
 						<td className="px-4 py-2">
-							<NodeView node={entry} onClick={() => onClick(entry)} />
+							<NodeView
+								node={entry}
+								repoUrl={repoUrl}
+								path={path}
+								setPath={setPath}
+							/>
 						</td>
 						<td className="px-4 py-2 text-right">{entry.numChanges}</td>
 						<td className="px-4 py-2 text-right">{entry.numFiles}</td>
@@ -243,19 +243,36 @@ const TreeView = ({
 
 const NodeView = ({
 	node,
-	onClick
+	repoUrl,
+	path,
+	setPath
 }: {
 	node: TreeNode;
-	onClick: () => void;
+	repoUrl: string;
+	path: string;
+	setPath: (path: string) => void;
 }) => {
+	const nodePath = (path ? path + "/" : "") + node.name;
+
 	switch (node.type) {
 		case "directory":
 			return (
-				<button className="text-indigo-500 hover:underline" onClick={onClick}>
+				<button
+					className="text-indigo-500 hover:underline"
+					onClick={() => setPath(nodePath)}
+				>
 					{node.name}
 				</button>
 			);
 		case "file":
-			return <span>{node.name}</span>;
+			return (
+				<a
+					className="text-indigo-500 hover:underline"
+					target="_blank"
+					href={buildFileUrl(repoUrl, nodePath)}
+				>
+					{node.name}
+				</a>
+			);
 	}
 };
