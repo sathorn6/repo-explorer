@@ -74271,7 +74271,7 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
                     })];
 
                   case 2:
-                    bTree = _b.sent();
+                    bTree = _b.sent(); // FIXME: Git submodules show up as type commit
 
                     if (aTree.tree.some(function (_a) {
                       var type = _a.type;
@@ -74566,7 +74566,53 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
 };
 
 exports.analyzeRepo = analyzeRepo;
-},{"isomorphic-git":"../node_modules/isomorphic-git/dist/bundle.umd.min.js","@isomorphic-git/lightning-fs":"../node_modules/@isomorphic-git/lightning-fs/src/index.js"}],"views/App.tsx":[function(require,module,exports) {
+},{"isomorphic-git":"../node_modules/isomorphic-git/dist/bundle.umd.min.js","@isomorphic-git/lightning-fs":"../node_modules/@isomorphic-git/lightning-fs/src/index.js"}],"url.ts":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.buildFileUrl = exports.extractRepositoryNameFromUrl = void 0;
+
+/**
+ * https://.../.../dotfiles.git -> dotfiles
+ */
+var extractRepositoryNameFromUrl = function extractRepositoryNameFromUrl(url) {
+  var baseName = url.split("/").pop(); // Strip .git from the end
+
+  if (baseName.endsWith(".git")) {
+    baseName = baseName.substring(0, -4);
+  }
+
+  return baseName || null;
+};
+/**
+ * The URL to link to a file directly differ between platforms:
+ * Github / Gitlab -> {repo}/blob/{commit}/...path
+ * Bitbucket / Gitea -> {repo}/src/{commit}/...path
+ *
+ * For now we just do the first one.
+ */
+
+
+exports.extractRepositoryNameFromUrl = extractRepositoryNameFromUrl;
+
+var buildFileUrl = function buildFileUrl(repoUrl, filePath, commit) {
+  if (commit === void 0) {
+    commit = "master";
+  }
+
+  var url = repoUrl; // Strip .git from the end
+
+  if (url.endsWith(".git")) {
+    url = url.substring(0, -4);
+  }
+
+  return url + "/blob/" + commit + "/" + filePath;
+};
+
+exports.buildFileUrl = buildFileUrl;
+},{}],"views/App.tsx":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -74577,6 +74623,8 @@ exports.Home = exports.App = void 0;
 var _react = _interopRequireWildcard(require("react"));
 
 var _git = require("../git");
+
+var _url = require("../url");
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
 
@@ -74744,7 +74792,7 @@ var Home = function Home() {
 
   if (exploring) {
     return _react.default.createElement(Explore, {
-      repo: repo
+      repoUrl: repo
     });
   }
 
@@ -74786,7 +74834,7 @@ var Home = function Home() {
 exports.Home = Home;
 
 var Explore = function Explore(_a) {
-  var repo = _a.repo;
+  var repoUrl = _a.repoUrl;
 
   var _b = (0, _react.useState)(),
       tree = _b[0],
@@ -74803,7 +74851,7 @@ var Explore = function Explore(_a) {
               _a = setTree;
               return [4
               /*yield*/
-              , (0, _git.analyzeRepo)(repo)];
+              , (0, _git.analyzeRepo)(repoUrl)];
 
             case 1:
               _a.apply(void 0, [_b.sent()]);
@@ -74817,21 +74865,23 @@ var Explore = function Explore(_a) {
     };
 
     worker();
-  }, [repo]);
+  }, [repoUrl]);
 
   if (tree) {
     return _react.default.createElement(ResultView, {
-      root: tree
+      root: tree,
+      repoUrl: repoUrl
     });
   }
 
   return _react.default.createElement("p", {
     className: "text-center text-gray-500"
-  }, "Analyzing ", repo, "...");
+  }, "Analyzing ", repoUrl, "...");
 };
 
 var ResultView = function ResultView(_a) {
-  var root = _a.root;
+  var repoUrl = _a.repoUrl,
+      root = _a.root;
 
   var _b = (0, _react.useState)(""),
       path = _b[0],
@@ -74844,14 +74894,12 @@ var ResultView = function ResultView(_a) {
   return _react.default.createElement("div", null, _react.default.createElement(PathNavigator, {
     path: path,
     setPath: setPath,
-    rootName: "root"
+    rootName: (0, _url.extractRepositoryNameFromUrl)(repoUrl) || "Repository"
   }), node && _react.default.createElement(TreeView, {
     tree: node,
-    onClick: function onClick(entry) {
-      if (entry.type === "directory") {
-        setPath((path ? path + "/" : "") + entry.name);
-      }
-    },
+    repoUrl: repoUrl,
+    path: path,
+    setPath: setPath,
     onGoUp: path ? function () {
       return setPath(parent);
     } : undefined
@@ -74917,7 +74965,9 @@ var PathDir = function PathDir(_a) {
 
 var TreeView = function TreeView(_a) {
   var tree = _a.tree,
-      _onClick = _a.onClick,
+      repoUrl = _a.repoUrl,
+      path = _a.path,
+      setPath = _a.setPath,
       onGoUp = _a.onGoUp;
   var sortedChildren = Array.from(tree.children).sort(function (a, b) {
     if (a.type === b.type) {
@@ -74956,9 +75006,9 @@ var TreeView = function TreeView(_a) {
       className: "px-4 py-2"
     }, _react.default.createElement(NodeView, {
       node: entry,
-      onClick: function onClick() {
-        return _onClick(entry);
-      }
+      repoUrl: repoUrl,
+      path: path,
+      setPath: setPath
     })), _react.default.createElement("td", {
       className: "px-4 py-2 text-right"
     }, entry.numChanges), _react.default.createElement("td", {
@@ -74969,20 +75019,67 @@ var TreeView = function TreeView(_a) {
 
 var NodeView = function NodeView(_a) {
   var node = _a.node,
-      onClick = _a.onClick;
+      repoUrl = _a.repoUrl,
+      path = _a.path,
+      setPath = _a.setPath;
+  var nodePath = (path ? path + "/" : "") + node.name;
 
   switch (node.type) {
     case "directory":
-      return _react.default.createElement("button", {
-        className: "text-indigo-500 hover:underline",
-        onClick: onClick
-      }, node.name);
+      return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(DirectoryIcon, null), _react.default.createElement("button", {
+        className: "ml-1 text-indigo-500 hover:underline",
+        onClick: function onClick() {
+          return setPath(nodePath);
+        }
+      }, node.name));
 
     case "file":
-      return _react.default.createElement("span", null, node.name);
+      return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(FileIcon, null), _react.default.createElement("a", {
+        className: "ml-1 text-indigo-500 hover:underline",
+        target: "_blank",
+        href: (0, _url.buildFileUrl)(repoUrl, nodePath)
+      }, node.name));
   }
 };
-},{"react":"../node_modules/react/index.js","../git":"git.ts"}],"../../../../../../../home/richard/.config/yarn/global/node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
+
+var DirectoryIcon = function DirectoryIcon() {
+  return _react.default.createElement("svg", {
+    className: "inline",
+    width: "16",
+    height: "16",
+    viewBox: "0 0 16 16",
+    fill: "none",
+    xmlns: "http://www.w3.org/2000/svg"
+  }, _react.default.createElement("path", {
+    d: "M1.5 4V2.5H5.5V4",
+    className: "stroke-current text-indigo-300"
+  }), _react.default.createElement("path", {
+    d: "M15 14H1V4H15V14Z",
+    className: "fill-current text-indigo-500"
+  }));
+};
+
+var FileIcon = function FileIcon() {
+  return _react.default.createElement("svg", {
+    className: "inline stroke-current text-gray-600",
+    width: "16",
+    height: "16",
+    viewBox: "0 0 16 16",
+    fill: "none",
+    xmlns: "http://www.w3.org/2000/svg"
+  }, _react.default.createElement("path", {
+    d: "M2.5 13.5V0.5H10L13.5 3.5V13.5H2.5Z"
+  }), _react.default.createElement("path", {
+    d: "M4 3.5H9"
+  }), _react.default.createElement("path", {
+    d: "M4 6.5H12"
+  }), _react.default.createElement("path", {
+    d: "M4 8.5H12"
+  }), _react.default.createElement("path", {
+    d: "M4 10.5H12"
+  }));
+};
+},{"react":"../node_modules/react/index.js","../git":"git.ts","../url":"url.ts"}],"../../../../../../../home/richard/.config/yarn/global/node_modules/parcel-bundler/src/builtins/bundle-url.js":[function(require,module,exports) {
 var bundleURL = null;
 
 function getBundleURLCached() {
@@ -75098,7 +75195,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65099" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61376" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
