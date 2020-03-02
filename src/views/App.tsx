@@ -257,22 +257,59 @@ const NodeView = ({
 	switch (node.type) {
 		case "directory":
 			return (
-				<button
-					className="text-indigo-500 hover:underline"
-					onClick={() => setPath(nodePath)}
-				>
-					{node.name}
-				</button>
+				<>
+					<DirectoryIcon />
+					<button
+						className="ml-1 text-indigo-500 hover:underline"
+						onClick={() => setPath(nodePath)}
+					>
+						{node.name}
+					</button>
+				</>
 			);
 		case "file":
 			return (
-				<a
-					className="text-indigo-500 hover:underline"
-					target="_blank"
-					href={buildFileUrl(repoUrl, nodePath)}
-				>
-					{node.name}
-				</a>
+				<>
+					<FileIcon />
+					<a
+						className="ml-1 text-indigo-500 hover:underline"
+						target="_blank"
+						href={buildFileUrl(repoUrl, nodePath)}
+					>
+						{node.name}
+					</a>
+				</>
 			);
 	}
 };
+
+const DirectoryIcon = () => (
+	<svg
+		className="inline"
+		width="16"
+		height="16"
+		viewBox="0 0 16 16"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<path d="M1.5 4V2.5H5.5V4" className="stroke-current text-indigo-300" />
+		<path d="M15 14H1V4H15V14Z" className="fill-current text-indigo-500" />
+	</svg>
+);
+
+const FileIcon = () => (
+	<svg
+		className="inline stroke-current text-gray-600"
+		width="16"
+		height="16"
+		viewBox="0 0 16 16"
+		fill="none"
+		xmlns="http://www.w3.org/2000/svg"
+	>
+		<path d="M2.5 13.5V0.5H10L13.5 3.5V13.5H2.5Z" />
+		<path d="M4 3.5H9" />
+		<path d="M4 6.5H12" />
+		<path d="M4 8.5H12" />
+		<path d="M4 10.5H12" />
+	</svg>
+);
