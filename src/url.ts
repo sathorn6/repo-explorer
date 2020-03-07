@@ -22,7 +22,7 @@ export const extractRepositoryNameFromUrl = (url: string): string | null => {
 export const buildFileUrl = (
 	repoUrl: string,
 	filePath: string,
-	commit = "master"
+	commit: string
 ): string => {
 	let url = repoUrl;
 

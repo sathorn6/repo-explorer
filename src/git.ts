@@ -5,6 +5,11 @@ const fs = new LightningFS("fs", { wipe: true });
 git.plugins.set("fs", fs);
 const pfs = fs.promises;
 
+export interface AnalyzeResult {
+	headRef: string;
+	root: TreeNode;
+}
+
 export interface TreeNode {
 	parent?: TreeNode;
 	name: string;
@@ -38,7 +43,7 @@ const incrementNumFiles = (node: TreeNode | undefined) => {
 	}
 };
 
-export const analyzeRepo = async (repoUrl: string): Promise<TreeNode> => {
+export const analyzeRepo = async (repoUrl: string): Promise<AnalyzeResult> => {
 	const dir = `/${Math.random()}`;
 
 	await pfs.mkdir(dir);
@@ -48,7 +53,6 @@ export const analyzeRepo = async (repoUrl: string): Promise<TreeNode> => {
 		dir,
 		corsProxy: "https://cors.isomorphic-git.org",
 		url: repoUrl,
-		ref: "master",
 		singleBranch: true
 	});
 	console.timeEnd("clone");
@@ -187,5 +191,8 @@ export const analyzeRepo = async (repoUrl: string): Promise<TreeNode> => {
 		return node;
 	};
 
-	return await makeTreeNode("/", "", headId);
+	return {
+		headRef: headId,
+		root: await makeTreeNode("/", "", headId)
+	};
 };

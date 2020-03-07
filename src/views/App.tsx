@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { analyzeRepo, TreeNode, followPath } from "../git";
+import { analyzeRepo, TreeNode, followPath, AnalyzeResult } from "../git";
 import { extractRepositoryNameFromUrl, buildFileUrl } from "../url";
 
 export const App = () => (
@@ -72,20 +72,20 @@ const Explore = ({
 	repoUrl: string;
 	setRepo(url: string | null): void;
 }) => {
-	const [tree, setTree] = useState<TreeNode | null>(null);
+	const [result, setResult] = useState<AnalyzeResult | null>(null);
 
 	useEffect(() => {
-		setTree(null);
+		setResult(null);
 
 		const worker = async () => {
-			setTree(await analyzeRepo(repoUrl));
+			setResult(await analyzeRepo(repoUrl));
 		};
 
 		worker();
 	}, [repoUrl]);
 
-	if (tree) {
-		return <ResultView root={tree} repoUrl={repoUrl} setRepo={setRepo} />;
+	if (result) {
+		return <ResultView result={result} repoUrl={repoUrl} setRepo={setRepo} />;
 	}
 
 	return (
@@ -96,11 +96,11 @@ const Explore = ({
 };
 
 const ResultView = ({
-	root,
+	result,
 	repoUrl,
 	setRepo
 }: {
-	root: TreeNode;
+	result: AnalyzeResult;
 	repoUrl: string;
 	setRepo(url: string | null): void;
 }) => {
@@ -109,7 +109,7 @@ const ResultView = ({
 	dirs.pop();
 	const parent = dirs.join("/");
 
-	const node = followPath(root, path);
+	const node = followPath(result.root, path);
 
 	const [url, setUrl] = useState(repoUrl);
 
@@ -141,6 +141,7 @@ const ResultView = ({
 				<TreeView
 					tree={node}
 					repoUrl={repoUrl}
+					headRef={result.headRef}
 					path={path}
 					setPath={setPath}
 					onGoUp={path ? () => setPath(parent) : undefined}
@@ -220,12 +221,14 @@ const PathDir = ({
 const TreeView = ({
 	tree,
 	repoUrl,
+	headRef,
 	path,
 	setPath,
 	onGoUp
 }: {
 	tree: TreeNode;
 	repoUrl: string;
+	headRef: string;
 	path: string;
 	setPath: (path: string) => void;
 	onGoUp?: () => void;
@@ -269,6 +272,7 @@ const TreeView = ({
 							<NodeView
 								node={entry}
 								repoUrl={repoUrl}
+								headRef={headRef}
 								path={path}
 								setPath={setPath}
 							/>
@@ -284,11 +288,13 @@ const TreeView = ({
 const NodeView = ({
 	node,
 	repoUrl,
+	headRef,
 	path,
 	setPath
 }: {
 	node: TreeNode;
 	repoUrl: string;
+	headRef: string;
 	path: string;
 	setPath: (path: string) => void;
 }) => {
@@ -314,7 +320,7 @@ const NodeView = ({
 					<a
 						className="ml-1 text-indigo-500 hover:underline"
 						target="_blank"
-						href={buildFileUrl(repoUrl, nodePath)}
+						href={buildFileUrl(repoUrl, nodePath, headRef)}
 					>
 						{node.name}
 					</a>
