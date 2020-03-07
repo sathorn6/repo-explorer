@@ -6,7 +6,7 @@ export const extractRepositoryNameFromUrl = (url: string): string | null => {
 
 	// Strip .git from the end
 	if (baseName.endsWith(".git")) {
-		baseName = baseName.substring(0, -4);
+		baseName = baseName.substring(0, baseName.length - 4);
 	}
 
 	return baseName || null;
@@ -28,7 +28,7 @@ export const buildFileUrl = (
 
 	// Strip .git from the end
 	if (url.endsWith(".git")) {
-		url = url.substring(0, -4);
+		url = url.substring(0, url.length - 4);
 	}
 
 	return `${url}/blob/${commit}/${filePath}`;
