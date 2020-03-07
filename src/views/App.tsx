@@ -2,24 +2,27 @@ import React, { useState, useEffect } from "react";
 import { analyzeRepo, TreeNode, followPath } from "../git";
 import { extractRepositoryNameFromUrl, buildFileUrl } from "../url";
 
-export const App = () => {
-	return (
-		<div className="p-12 max-w-screen-md mx-auto">
-			<Home />
-		</div>
-	);
-};
+export const App = () => (
+	<div className="max-w-screen-md mx-auto">
+		<Main />
+	</div>
+);
 
-export const Home = () => {
-	const [repo, setRepo] = useState("https://github.com/sathorn6/repo-explorer");
-	const [exploring, setExploring] = useState(false);
+const Main = () => {
+	const [repo, setRepo] = useState<string | null>(null);
 
-	if (exploring) {
-		return <Explore repoUrl={repo} />;
+	if (repo) {
+		return <Explore repoUrl={repo} setRepo={setRepo} />;
 	}
 
+	return <Home setRepo={setRepo} />;
+};
+
+const Home = ({ setRepo }: { setRepo(url: string | null): void }) => {
+	const [url, setUrl] = useState("https://github.com/sathorn6/repo-explorer");
+
 	return (
-		<div>
+		<div className="p-12">
 			<svg
 				className="m-auto fill-current text-indigo-600"
 				width="121"
@@ -47,12 +50,12 @@ export const Home = () => {
 					<input
 						className="flex-1 p-4 text-base border text-gray-900"
 						type="text"
-						value={repo}
-						onChange={e => setRepo(e.target.value)}
+						value={url}
+						onChange={e => setUrl(e.target.value)}
 					/>
 					<button
 						className="ml-4 text-lg py-4 px-8 bg-indigo-600 text-white"
-						onClick={() => setExploring(true)}
+						onClick={() => setRepo(url)}
 					>
 						Explore
 					</button>
@@ -62,10 +65,18 @@ export const Home = () => {
 	);
 };
 
-const Explore = ({ repoUrl }: { repoUrl: string }) => {
-	const [tree, setTree] = useState();
+const Explore = ({
+	repoUrl,
+	setRepo
+}: {
+	repoUrl: string;
+	setRepo(url: string | null): void;
+}) => {
+	const [tree, setTree] = useState<TreeNode | null>(null);
 
 	useEffect(() => {
+		setTree(null);
+
 		const worker = async () => {
 			setTree(await analyzeRepo(repoUrl));
 		};
@@ -74,13 +85,25 @@ const Explore = ({ repoUrl }: { repoUrl: string }) => {
 	}, [repoUrl]);
 
 	if (tree) {
-		return <ResultView root={tree} repoUrl={repoUrl} />;
+		return <ResultView root={tree} repoUrl={repoUrl} setRepo={setRepo} />;
 	}
 
-	return <p className="text-center text-gray-500">Analyzing {repoUrl}...</p>;
+	return (
+		<div className="p-12 h-full flex justify-center">
+			<div className="self-center text-gray-500">Analyzing {repoUrl}...</div>
+		</div>
+	);
 };
 
-const ResultView = ({ repoUrl, root }: { repoUrl: string; root: TreeNode }) => {
+const ResultView = ({
+	root,
+	repoUrl,
+	setRepo
+}: {
+	root: TreeNode;
+	repoUrl: string;
+	setRepo(url: string | null): void;
+}) => {
 	const [path, setPath] = useState("");
 	const dirs = path.split("/");
 	dirs.pop();
@@ -88,8 +111,27 @@ const ResultView = ({ repoUrl, root }: { repoUrl: string; root: TreeNode }) => {
 
 	const node = followPath(root, path);
 
+	const [url, setUrl] = useState(repoUrl);
+
 	return (
-		<div>
+		<div className="p-4">
+			<div className="flex mb-8">
+				<span className="py-2 text-base text-gray-900 mr-2 font-bold">
+					URL:
+				</span>
+				<input
+					className="flex-1 py-2 px-4 text-base border text-gray-900"
+					type="text"
+					value={url}
+					onChange={e => setUrl(e.target.value)}
+				/>
+				<button
+					className="ml-4 text-base py-2 px-8 bg-indigo-600 text-white"
+					onClick={() => setRepo(url)}
+				>
+					Explore
+				</button>
+			</div>
 			<PathNavigator
 				path={path}
 				setPath={setPath}

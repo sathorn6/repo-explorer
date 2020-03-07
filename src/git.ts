@@ -5,8 +5,6 @@ const fs = new LightningFS("fs", { wipe: true });
 git.plugins.set("fs", fs);
 const pfs = fs.promises;
 
-const dir = "/myrepo";
-
 export interface TreeNode {
 	parent?: TreeNode;
 	name: string;
@@ -41,6 +39,8 @@ const incrementNumFiles = (node: TreeNode | undefined) => {
 };
 
 export const analyzeRepo = async (repoUrl: string): Promise<TreeNode> => {
+	const dir = `/${Math.random()}`;
+
 	await pfs.mkdir(dir);
 
 	console.time("clone");
