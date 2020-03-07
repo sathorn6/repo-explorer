@@ -74160,7 +74160,6 @@ var fs = new _lightningFs.default("fs", {
 });
 git.plugins.set("fs", fs);
 var pfs = fs.promises;
-var dir = "/myrepo";
 
 var followPath = function followPath(tree, path) {
   if (path === "") {
@@ -74170,9 +74169,9 @@ var followPath = function followPath(tree, path) {
   var dirs = path.split("/");
   var current = tree;
 
-  var _loop_1 = function _loop_1(dir_1) {
+  var _loop_1 = function _loop_1(dir) {
     current = current.children.find(function (node) {
-      return node.name === dir_1;
+      return node.name === dir;
     });
 
     if (!current) {
@@ -74183,9 +74182,9 @@ var followPath = function followPath(tree, path) {
   };
 
   for (var _i = 0, dirs_1 = dirs; _i < dirs_1.length; _i++) {
-    var dir_1 = dirs_1[_i];
+    var dir = dirs_1[_i];
 
-    var state_1 = _loop_1(dir_1);
+    var state_1 = _loop_1(dir);
 
     if (_typeof(state_1) === "object") return state_1.value;
   }
@@ -74203,17 +74202,18 @@ var incrementNumFiles = function incrementNumFiles(node) {
 
 var analyzeRepo = function analyzeRepo(repoUrl) {
   return __awaiter(void 0, void 0, Promise, function () {
-    var changes, countChange, _compareTrees, visitedCommits, _walkCommit, headId, head, _makeTreeNode;
+    var dir, changes, countChange, _compareTrees, visitedCommits, _walkCommit, headId, head, _makeTreeNode, _a;
 
-    return __generator(this, function (_a) {
-      switch (_a.label) {
+    return __generator(this, function (_b) {
+      switch (_b.label) {
         case 0:
+          dir = "/" + Math.random();
           return [4
           /*yield*/
           , pfs.mkdir(dir)];
 
         case 1:
-          _a.sent();
+          _b.sent();
 
           console.time("clone");
           return [4
@@ -74222,12 +74222,11 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
             dir: dir,
             corsProxy: "https://cors.isomorphic-git.org",
             url: repoUrl,
-            ref: "master",
             singleBranch: true
           })];
 
         case 2:
-          _a.sent();
+          _b.sent();
 
           console.timeEnd("clone");
           changes = new Map();
@@ -74316,8 +74315,8 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
 
                       if (blob.oid !== inB.oid) {
                         for (var _i = 0, prefix_1 = prefix; _i < prefix_1.length; _i++) {
-                          var dir_2 = prefix_1[_i];
-                          countChange(dir_2);
+                          var dir_1 = prefix_1[_i];
+                          countChange(dir_1);
                         }
 
                         countChange("" + prefix[prefix.length - 1] + blob.path);
@@ -74457,7 +74456,7 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
           })];
 
         case 3:
-          headId = _a.sent()[0].oid;
+          headId = _b.sent()[0].oid;
           return [4
           /*yield*/
           , git.readCommit({
@@ -74466,13 +74465,13 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
           })];
 
         case 4:
-          head = _a.sent();
+          head = _b.sent();
           return [4
           /*yield*/
           , _walkCommit(head)];
 
         case 5:
-          _a.sent();
+          _b.sent();
 
           _makeTreeNode = function makeTreeNode(path, name, oid, parent) {
             return __awaiter(void 0, void 0, Promise, function () {
@@ -74552,6 +74551,9 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
             });
           };
 
+          _a = {
+            headRef: headId
+          };
           return [4
           /*yield*/
           , _makeTreeNode("/", "", headId)];
@@ -74559,7 +74561,7 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
         case 6:
           return [2
           /*return*/
-          , _a.sent()];
+          , (_a.root = _b.sent(), _a)];
       }
     });
   });
@@ -74581,7 +74583,7 @@ var extractRepositoryNameFromUrl = function extractRepositoryNameFromUrl(url) {
   var baseName = url.split("/").pop(); // Strip .git from the end
 
   if (baseName.endsWith(".git")) {
-    baseName = baseName.substring(0, -4);
+    baseName = baseName.substring(0, baseName.length - 4);
   }
 
   return baseName || null;
@@ -74598,14 +74600,10 @@ var extractRepositoryNameFromUrl = function extractRepositoryNameFromUrl(url) {
 exports.extractRepositoryNameFromUrl = extractRepositoryNameFromUrl;
 
 var buildFileUrl = function buildFileUrl(repoUrl, filePath, commit) {
-  if (commit === void 0) {
-    commit = "master";
-  }
-
   var url = repoUrl; // Strip .git from the end
 
   if (url.endsWith(".git")) {
-    url = url.substring(0, -4);
+    url = url.substring(0, url.length - 4);
   }
 
   return url + "/blob/" + commit + "/" + filePath;
@@ -74618,7 +74616,7 @@ exports.buildFileUrl = buildFileUrl;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.Home = exports.App = void 0;
+exports.App = void 0;
 
 var _react = _interopRequireWildcard(require("react"));
 
@@ -74775,36 +74773,47 @@ var __generator = void 0 && (void 0).__generator || function (thisArg, body) {
 
 var App = function App() {
   return _react.default.createElement("div", {
-    className: "p-12 max-w-screen-md mx-auto"
-  }, _react.default.createElement(Home, null));
+    className: "max-w-screen-md mx-auto"
+  }, _react.default.createElement(Main, null));
 };
 
 exports.App = App;
 
-var Home = function Home() {
-  var _a = (0, _react.useState)("https://github.com/sathorn6/repo-explorer"),
+var Main = function Main() {
+  var _a = (0, _react.useState)(null),
       repo = _a[0],
       setRepo = _a[1];
 
-  var _b = (0, _react.useState)(false),
-      exploring = _b[0],
-      setExploring = _b[1];
-
-  if (exploring) {
+  if (repo) {
     return _react.default.createElement(Explore, {
-      repoUrl: repo
+      repoUrl: repo,
+      setRepo: setRepo
     });
   }
 
-  return _react.default.createElement("div", null, _react.default.createElement("svg", {
+  return _react.default.createElement(Home, {
+    setRepo: setRepo
+  });
+};
+
+var Home = function Home(_a) {
+  var setRepo = _a.setRepo;
+
+  var _b = (0, _react.useState)("https://github.com/sathorn6/repo-explorer"),
+      url = _b[0],
+      setUrl = _b[1];
+
+  return _react.default.createElement("div", {
+    className: "p-12"
+  }, _react.default.createElement("svg", {
     className: "m-auto fill-current text-indigo-600",
     width: "121",
     height: "121",
     viewBox: "0 0 121 121",
     xmlns: "http://www.w3.org/2000/svg"
   }, _react.default.createElement("path", {
-    "fill-rule": "evenodd",
-    "clip-rule": "evenodd",
+    fillRule: "evenodd",
+    clipRule: "evenodd",
     d: "M2.94932 53C-0.955922 56.9053 -0.955928 63.2369 2.94931 67.1421L53 117.193C56.9053 121.098 63.2369 121.098 67.1422 117.193L117.193 67.1422C121.098 63.2369 121.098 56.9053 117.193 53L67.1422 2.94932C63.2369 -0.955922 56.9053 -0.955928 53 2.94931L41.6117 14.3376L56.5096 29.2356C57.3531 28.9649 58.2524 28.8188 59.1858 28.8188C64.0182 28.8188 67.9356 32.7362 67.9356 37.5686C67.9356 38.502 67.7894 39.4012 67.5188 40.2447L82.8574 55.5833C84.0856 54.9262 85.489 54.5535 86.9793 54.5535C91.8117 54.5535 95.7292 58.471 95.7292 63.3034C95.7292 68.1357 91.8117 72.0532 86.9793 72.0532C82.1469 72.0532 78.2295 68.1357 78.2295 63.3034C78.2295 62.9721 78.2479 62.6451 78.2838 62.3234L63.7005 47.7401V76.3945C66.2385 77.9263 67.9356 80.7105 67.9356 83.8912C67.9356 88.7236 64.0182 92.641 59.1858 92.641C54.3534 92.641 50.436 88.7236 50.436 83.8912C50.436 80.2975 52.6024 77.2099 55.7005 75.863V45.5967C52.6024 44.2499 50.436 41.1622 50.436 37.5686C50.436 36.6352 50.5821 35.7359 50.8528 34.8924L35.9548 19.9945L2.94932 53Z"
   })), _react.default.createElement("h1", {
     className: "text-5xl text-center text-gray-900 font-black tracking-tight"
@@ -74819,28 +74828,29 @@ var Home = function Home() {
   }, _react.default.createElement("input", {
     className: "flex-1 p-4 text-base border text-gray-900",
     type: "text",
-    value: repo,
+    value: url,
     onChange: function onChange(e) {
-      return setRepo(e.target.value);
+      return setUrl(e.target.value);
     }
   }), _react.default.createElement("button", {
     className: "ml-4 text-lg py-4 px-8 bg-indigo-600 text-white",
     onClick: function onClick() {
-      return setExploring(true);
+      return setRepo(url);
     }
   }, "Explore"))));
 };
 
-exports.Home = Home;
-
 var Explore = function Explore(_a) {
-  var repoUrl = _a.repoUrl;
+  var repoUrl = _a.repoUrl,
+      setRepo = _a.setRepo;
 
-  var _b = (0, _react.useState)(),
-      tree = _b[0],
-      setTree = _b[1];
+  var _b = (0, _react.useState)(null),
+      result = _b[0],
+      setResult = _b[1];
 
   (0, _react.useEffect)(function () {
+    setResult(null);
+
     var worker = function worker() {
       return __awaiter(void 0, void 0, void 0, function () {
         var _a;
@@ -74848,7 +74858,7 @@ var Explore = function Explore(_a) {
         return __generator(this, function (_b) {
           switch (_b.label) {
             case 0:
-              _a = setTree;
+              _a = setResult;
               return [4
               /*yield*/
               , (0, _git.analyzeRepo)(repoUrl)];
@@ -74867,21 +74877,25 @@ var Explore = function Explore(_a) {
     worker();
   }, [repoUrl]);
 
-  if (tree) {
+  if (result) {
     return _react.default.createElement(ResultView, {
-      root: tree,
-      repoUrl: repoUrl
+      result: result,
+      repoUrl: repoUrl,
+      setRepo: setRepo
     });
   }
 
-  return _react.default.createElement("p", {
-    className: "text-center text-gray-500"
-  }, "Analyzing ", repoUrl, "...");
+  return _react.default.createElement("div", {
+    className: "p-12 h-full flex justify-center"
+  }, _react.default.createElement("div", {
+    className: "self-center text-gray-500"
+  }, "Analyzing ", repoUrl, "..."));
 };
 
 var ResultView = function ResultView(_a) {
-  var repoUrl = _a.repoUrl,
-      root = _a.root;
+  var result = _a.result,
+      repoUrl = _a.repoUrl,
+      setRepo = _a.setRepo;
 
   var _b = (0, _react.useState)(""),
       path = _b[0],
@@ -74890,14 +74904,38 @@ var ResultView = function ResultView(_a) {
   var dirs = path.split("/");
   dirs.pop();
   var parent = dirs.join("/");
-  var node = (0, _git.followPath)(root, path);
-  return _react.default.createElement("div", null, _react.default.createElement(PathNavigator, {
+  var node = (0, _git.followPath)(result.root, path);
+
+  var _c = (0, _react.useState)(repoUrl),
+      url = _c[0],
+      setUrl = _c[1];
+
+  return _react.default.createElement("div", {
+    className: "p-4"
+  }, _react.default.createElement("div", {
+    className: "flex mb-8"
+  }, _react.default.createElement("span", {
+    className: "py-2 text-base text-gray-900 mr-2 font-bold"
+  }, "URL:"), _react.default.createElement("input", {
+    className: "flex-1 py-2 px-4 text-base border text-gray-900",
+    type: "text",
+    value: url,
+    onChange: function onChange(e) {
+      return setUrl(e.target.value);
+    }
+  }), _react.default.createElement("button", {
+    className: "ml-4 text-base py-2 px-8 bg-indigo-600 text-white",
+    onClick: function onClick() {
+      return setRepo(url);
+    }
+  }, "Explore")), _react.default.createElement(PathNavigator, {
     path: path,
     setPath: setPath,
     rootName: (0, _url.extractRepositoryNameFromUrl)(repoUrl) || "Repository"
   }), node && _react.default.createElement(TreeView, {
     tree: node,
     repoUrl: repoUrl,
+    headRef: result.headRef,
     path: path,
     setPath: setPath,
     onGoUp: path ? function () {
@@ -74966,6 +75004,7 @@ var PathDir = function PathDir(_a) {
 var TreeView = function TreeView(_a) {
   var tree = _a.tree,
       repoUrl = _a.repoUrl,
+      headRef = _a.headRef,
       path = _a.path,
       setPath = _a.setPath,
       onGoUp = _a.onGoUp;
@@ -74988,9 +75027,7 @@ var TreeView = function TreeView(_a) {
     className: "w-full px-4 py-2 text-left"
   }, "Name"), _react.default.createElement("th", {
     className: "whitespace-no-wrap px-4 py-2"
-  }, "# of changes"), _react.default.createElement("th", {
-    className: "whitespace-no-wrap px-4 py-2"
-  }, "# of files"))), _react.default.createElement("tbody", null, onGoUp && _react.default.createElement("tr", {
+  }, "# of changes"))), _react.default.createElement("tbody", null, onGoUp && _react.default.createElement("tr", {
     className: "border"
   }, _react.default.createElement("td", {
     colSpan: 3,
@@ -75007,19 +75044,19 @@ var TreeView = function TreeView(_a) {
     }, _react.default.createElement(NodeView, {
       node: entry,
       repoUrl: repoUrl,
+      headRef: headRef,
       path: path,
       setPath: setPath
     })), _react.default.createElement("td", {
       className: "px-4 py-2 text-right"
-    }, entry.numChanges), _react.default.createElement("td", {
-      className: "px-4 py-2 text-right"
-    }, entry.numFiles));
+    }, entry.numChanges));
   })));
 };
 
 var NodeView = function NodeView(_a) {
   var node = _a.node,
       repoUrl = _a.repoUrl,
+      headRef = _a.headRef,
       path = _a.path,
       setPath = _a.setPath;
   var nodePath = (path ? path + "/" : "") + node.name;
@@ -75037,7 +75074,7 @@ var NodeView = function NodeView(_a) {
       return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(FileIcon, null), _react.default.createElement("a", {
         className: "ml-1 text-indigo-500 hover:underline",
         target: "_blank",
-        href: (0, _url.buildFileUrl)(repoUrl, nodePath)
+        href: (0, _url.buildFileUrl)(repoUrl, nodePath, headRef)
       }, node.name));
   }
 };
@@ -75195,7 +75232,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61376" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50048" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
