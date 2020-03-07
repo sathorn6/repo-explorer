@@ -206,7 +206,6 @@ const TreeView = ({
 				<tr className="border bg-gray-200">
 					<th className="w-full px-4 py-2 text-left">Name</th>
 					<th className="whitespace-no-wrap px-4 py-2"># of changes</th>
-					<th className="whitespace-no-wrap px-4 py-2"># of files</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -233,7 +232,6 @@ const TreeView = ({
 							/>
 						</td>
 						<td className="px-4 py-2 text-right">{entry.numChanges}</td>
-						<td className="px-4 py-2 text-right">{entry.numFiles}</td>
 					</tr>
 				))}
 			</tbody>
