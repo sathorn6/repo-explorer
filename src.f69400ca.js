@@ -74855,7 +74855,7 @@ var Home = function Home(_a) {
     className: "text-5xl text-center text-gray-900 font-black tracking-tight"
   }, "Git Repo Explorer"), _react.default.createElement("h2", {
     className: "text-lg text-center text-gray-600"
-  }, "Get quick insights into any Git repository."), _react.default.createElement("div", {
+  }, "Find the most changed files"), _react.default.createElement("div", {
     className: "flex flex-col mt-16"
   }, _react.default.createElement("label", {
     className: "text-md text-gray-800 font-bold"
@@ -75290,7 +75290,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54440" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "61831" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
