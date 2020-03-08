@@ -47,7 +47,7 @@ const Home = ({ setRepo }: { setRepo(url: string | null): void }) => {
 				Git Repo Explorer
 			</h1>
 			<h2 className="text-lg text-center text-gray-600">
-				Get quick insights into any Git repository.
+				Find the files that change the most.
 			</h2>
 			<div className="flex flex-col mt-16">
 				<label className="text-md text-gray-800 font-bold">
