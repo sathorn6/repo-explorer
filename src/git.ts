@@ -5,10 +5,18 @@ const fs = new LightningFS("fs", { wipe: true });
 git.plugins.set("fs", fs);
 const pfs = fs.promises;
 
-export interface AnalyzeResult {
+export interface AnalyzeSuccess {
+	success: true;
 	headRef: string;
 	root: TreeNode;
 }
+
+export interface AnalyzeFailure {
+	success: false;
+	errorMessage: string;
+}
+
+export type AnalyzeResult = AnalyzeSuccess | AnalyzeFailure;
 
 export interface TreeNode {
 	parent?: TreeNode;
@@ -44,6 +52,17 @@ const incrementNumFiles = (node: TreeNode | undefined) => {
 };
 
 export const analyzeRepo = async (repoUrl: string): Promise<AnalyzeResult> => {
+	try {
+		return await tryAnalyzeRepo(repoUrl);
+	} catch (error) {
+		return {
+			success: false,
+			errorMessage: error.message
+		};
+	}
+};
+
+const tryAnalyzeRepo = async (repoUrl: string): Promise<AnalyzeSuccess> => {
 	const dir = `/${Math.random()}`;
 
 	await pfs.mkdir(dir);
@@ -192,6 +211,7 @@ export const analyzeRepo = async (repoUrl: string): Promise<AnalyzeResult> => {
 	};
 
 	return {
+		success: true,
 		headRef: headId,
 		root: await makeTreeNode("/", "", headId)
 	};

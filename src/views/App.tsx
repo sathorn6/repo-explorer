@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { analyzeRepo, TreeNode, followPath, AnalyzeResult } from "../git";
+import {
+	analyzeRepo,
+	TreeNode,
+	followPath,
+	AnalyzeResult,
+	AnalyzeSuccess,
+	AnalyzeFailure
+} from "../git";
 import { extractRepositoryNameFromUrl, buildFileUrl } from "../url";
 
 export const App = () => (
@@ -104,13 +111,6 @@ const ResultView = ({
 	repoUrl: string;
 	setRepo(url: string | null): void;
 }) => {
-	const [path, setPath] = useState("");
-	const dirs = path.split("/");
-	dirs.pop();
-	const parent = dirs.join("/");
-
-	const node = followPath(result.root, path);
-
 	const [url, setUrl] = useState(repoUrl);
 
 	return (
@@ -132,6 +132,31 @@ const ResultView = ({
 					Explore
 				</button>
 			</div>
+			{result.success ? (
+				<SuccessView result={result} repoUrl={repoUrl} />
+			) : (
+				<FailureView result={result} />
+			)}
+		</div>
+	);
+};
+
+const SuccessView = ({
+	result,
+	repoUrl
+}: {
+	result: AnalyzeSuccess;
+	repoUrl: string;
+}) => {
+	const [path, setPath] = useState("");
+	const dirs = path.split("/");
+	dirs.pop();
+	const parent = dirs.join("/");
+
+	const node = followPath(result.root, path);
+
+	return (
+		<>
 			<PathNavigator
 				path={path}
 				setPath={setPath}
@@ -147,9 +172,18 @@ const ResultView = ({
 					onGoUp={path ? () => setPath(parent) : undefined}
 				/>
 			)}
-		</div>
+		</>
 	);
 };
+
+const FailureView = ({ result }: { result: AnalyzeFailure }) => (
+	<div className="mt-24 text-center">
+		<h2 className="text-4xl text-red-600 font-bold">Something went wrong.</h2>
+		<p className="mt-4 text-xl text-gray-600">
+			Exploring this URL failed: {result.errorMessage}
+		</p>
+	</div>
+);
 
 const PathNavigator = ({
 	rootName,
