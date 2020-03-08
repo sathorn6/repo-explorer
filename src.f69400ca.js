@@ -74202,6 +74202,43 @@ var incrementNumFiles = function incrementNumFiles(node) {
 
 var analyzeRepo = function analyzeRepo(repoUrl) {
   return __awaiter(void 0, void 0, Promise, function () {
+    var error_1;
+    return __generator(this, function (_a) {
+      switch (_a.label) {
+        case 0:
+          _a.trys.push([0, 2,, 3]);
+
+          return [4
+          /*yield*/
+          , tryAnalyzeRepo(repoUrl)];
+
+        case 1:
+          return [2
+          /*return*/
+          , _a.sent()];
+
+        case 2:
+          error_1 = _a.sent();
+          return [2
+          /*return*/
+          , {
+            success: false,
+            errorMessage: error_1.message
+          }];
+
+        case 3:
+          return [2
+          /*return*/
+          ];
+      }
+    });
+  });
+};
+
+exports.analyzeRepo = analyzeRepo;
+
+var tryAnalyzeRepo = function tryAnalyzeRepo(repoUrl) {
+  return __awaiter(void 0, void 0, Promise, function () {
     var dir, changes, countChange, _compareTrees, visitedCommits, _walkCommit, headId, head, _makeTreeNode, _a;
 
     return __generator(this, function (_b) {
@@ -74552,6 +74589,7 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
           };
 
           _a = {
+            success: true,
             headRef: headId
           };
           return [4
@@ -74566,8 +74604,6 @@ var analyzeRepo = function analyzeRepo(repoUrl) {
     });
   });
 };
-
-exports.analyzeRepo = analyzeRepo;
 },{"isomorphic-git":"../node_modules/isomorphic-git/dist/bundle.umd.min.js","@isomorphic-git/lightning-fs":"../node_modules/@isomorphic-git/lightning-fs/src/index.js"}],"url.ts":[function(require,module,exports) {
 "use strict";
 
@@ -74897,18 +74933,9 @@ var ResultView = function ResultView(_a) {
       repoUrl = _a.repoUrl,
       setRepo = _a.setRepo;
 
-  var _b = (0, _react.useState)(""),
-      path = _b[0],
-      setPath = _b[1];
-
-  var dirs = path.split("/");
-  dirs.pop();
-  var parent = dirs.join("/");
-  var node = (0, _git.followPath)(result.root, path);
-
-  var _c = (0, _react.useState)(repoUrl),
-      url = _c[0],
-      setUrl = _c[1];
+  var _b = (0, _react.useState)(repoUrl),
+      url = _b[0],
+      setUrl = _b[1];
 
   return _react.default.createElement("div", {
     className: "p-4"
@@ -74928,7 +74955,27 @@ var ResultView = function ResultView(_a) {
     onClick: function onClick() {
       return setRepo(url);
     }
-  }, "Explore")), _react.default.createElement(PathNavigator, {
+  }, "Explore")), result.success ? _react.default.createElement(SuccessView, {
+    result: result,
+    repoUrl: repoUrl
+  }) : _react.default.createElement(FailureView, {
+    result: result
+  }));
+};
+
+var SuccessView = function SuccessView(_a) {
+  var result = _a.result,
+      repoUrl = _a.repoUrl;
+
+  var _b = (0, _react.useState)(""),
+      path = _b[0],
+      setPath = _b[1];
+
+  var dirs = path.split("/");
+  dirs.pop();
+  var parent = dirs.join("/");
+  var node = (0, _git.followPath)(result.root, path);
+  return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(PathNavigator, {
     path: path,
     setPath: setPath,
     rootName: (0, _url.extractRepositoryNameFromUrl)(repoUrl) || "Repository"
@@ -74942,6 +74989,17 @@ var ResultView = function ResultView(_a) {
       return setPath(parent);
     } : undefined
   }));
+};
+
+var FailureView = function FailureView(_a) {
+  var result = _a.result;
+  return _react.default.createElement("div", {
+    className: "mt-24 text-center"
+  }, _react.default.createElement("h2", {
+    className: "text-4xl text-red-600 font-bold"
+  }, "Something went wrong."), _react.default.createElement("p", {
+    className: "mt-4 text-xl text-gray-600"
+  }, "Exploring this URL failed: ", result.errorMessage));
 };
 
 var PathNavigator = function PathNavigator(_a) {
@@ -75232,7 +75290,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50048" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54440" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
