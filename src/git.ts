@@ -39,7 +39,7 @@ export const followPath = (tree: TreeNode, path: string): TreeNode | null => {
 	return current;
 };
 
-const wasmInit = init("/rsgit_bg.wasm");
+const wasmInit = init("rsgit_bg.wasm");
 
 export const analyzeRepo = async (repoUrl: string): Promise<AnalyzeResult> => {
 	try {
