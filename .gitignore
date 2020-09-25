@@ -1,4 +1,6 @@
 node_modules/
 dist/
+parser/target/
+parser/pkg/
 .cache/
 *.log

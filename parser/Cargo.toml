@@ -1,0 +1,18 @@
+[package]
+name = "rsgit"
+version = "0.1.0"
+authors = ["sathorn6 <sathorn6@users.noreply.github.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+compress = { git = "https://github.com/sathorn6/rust-compress" }
+hex = "0.4.2"
+rust-crypto-wasm = "0.3.1"
+wasm-bindgen = { version = "0.2.67", features = ["serde-serialize"] }
+console_error_panic_hook = "0.1.6"
+serde = {version = "1.0.115", features = ["derive"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]

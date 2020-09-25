@@ -9,9 +9,7 @@
 		"deploy": "yarn build && gh-pages -d dist"
 	},
 	"dependencies": {
-		"@isomorphic-git/lightning-fs": "^3.4.1",
 		"babel-polyfill": "^6.26.0",
-		"isomorphic-git": "^0.77.1",
 		"react": ">=16.0.0",
 		"react-dom": ">=16.0.0"
 	},
@@ -21,6 +19,7 @@
 		"@types/react-dom": "^16.9.5",
 		"cssnano": "^4.1.10",
 		"gh-pages": "^2.2.0",
+		"parcel-bundler": "^1.12.4",
 		"tailwindcss": "^1.2.0",
 		"typescript": "^3.7.5"
 	}
