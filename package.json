@@ -6,7 +6,8 @@
 	"scripts": {
 		"start": "parcel src/index.html",
 		"build": "parcel build --public-url '.' src/index.html",
-		"deploy": "yarn build && gh-pages -d dist"
+		"build:wasm": "cd parser && ./build.sh",
+		"deploy": "yarn build:wasm && yarn build && gh-pages -d dist"
 	},
 	"dependencies": {
 		"babel-polyfill": "^6.26.0",
