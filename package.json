@@ -1,0 +1,15 @@
+{
+  "name": "rsgit",
+  "collaborators": [
+    "sathorn6 <sathorn6@users.noreply.github.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "rsgit_bg.wasm",
+    "rsgit.js",
+    "rsgit.d.ts"
+  ],
+  "module": "rsgit.js",
+  "types": "rsgit.d.ts",
+  "sideEffects": false
+}
