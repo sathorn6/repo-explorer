@@ -6,10 +6,19 @@ use std::collections::HashSet;
 use std::convert::TryInto;
 use std::io::Read;
 use std::str;
-
-pub type GitTree = Vec<GitTreeEntry>;
+use serde::{Serialize, Deserialize};
 
 const SHA_SIZE: usize = 20;
+
+fn ashex(data: &[u8]) -> String {
+    let mut res = String::with_capacity(data.len() * 2);
+    for byte in data {
+        res.push_str(format!("{:02x}", byte).as_str());
+    }
+    res
+}
+
+pub type GitTree = Vec<GitTreeEntry>;
 
 pub fn parse_tree(data: &[u8]) -> GitTree {
     let mut entries = Vec::<GitTreeEntry>::new();
@@ -114,14 +123,6 @@ impl<T: Read> Read for &mut ReadCounter<T> {
     }
 }
 
-fn ashex(data: &[u8]) -> String {
-    let mut res = String::with_capacity(data.len() * 2);
-    for byte in data {
-        res.push_str(format!("{:02x}", byte).as_str());
-    }
-    res
-}
-
 #[derive(PartialEq, Clone)]
 enum PackObjectType {
     ObjCommit = 1,
@@ -210,7 +211,6 @@ pub fn parse_pack(data: &[u8]) -> ParsePackResult {
                 is an OBJ_OFS_DELTA object
             */
             delta_ref = Some(&data[p..p + 20]);
-            println!("its a delta {}", ashex(delta_ref.unwrap()));
             p += 20;
         }
 
@@ -245,7 +245,7 @@ pub fn parse_pack(data: &[u8]) -> ParsePackResult {
                 decompressed = undeltified; // And use the undeltified data
             } else {
                 // The refed object comes later, we can't handle this yet
-                println!("refed object not found")
+                println!("refenced object not found: ignored")
             }
         }
 
@@ -392,19 +392,15 @@ pub struct ChangeCounter<'a> {
     num_changes: HashMap<String, u32>
 }
 
-use serde::{Serialize, Deserialize};
-
 #[derive(Serialize, Deserialize)]
 pub struct TreeNode {
 	pub name: String,
 	pub r#type: String,
 	pub numChanges: u32,
-	pub numFiles: u32,
 	pub children: Vec<Box<TreeNode>>
 }
 
 impl ChangeCounter<'_> {
-    // Another static method, taking two arguments:
     pub fn process(pack: &ParsePackResult, head_commit: &[u8]) -> TreeNode {
         let mut comp = ChangeCounter {
             pack,
@@ -480,7 +476,6 @@ impl ChangeCounter<'_> {
                     name: entry.name.clone(),
                     r#type: String::from("file"),
                     numChanges: *self.num_changes.get(&format!("{}{}", path, entry.name)).unwrap_or(&0),
-                    numFiles: 666,
                     children: vec![]
                 }));
             }
@@ -490,7 +485,6 @@ impl ChangeCounter<'_> {
             name,
             r#type: String::from("directory"),
             numChanges: *self.num_changes.get(&path).unwrap_or(&0),
-            numFiles: 666,
             children
         }
     }

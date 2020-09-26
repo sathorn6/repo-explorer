@@ -17,7 +17,6 @@ export interface TreeNode {
 	name: string;
 	type: "file" | "directory";
 	numChanges: number;
-	numFiles: number;
 	children: TreeNode[];
 }
 
