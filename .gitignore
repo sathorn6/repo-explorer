@@ -3,4 +3,5 @@ dist/
 parser/target/
 parser/pkg/
 .cache/
+.idea/
 *.log
